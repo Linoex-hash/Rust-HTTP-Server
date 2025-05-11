@@ -3,6 +3,7 @@ use std::convert::Infallible;
 use std::fmt::Write;
 use std::result;
 use std::str::FromStr;
+
 /// The HTTP Result type.
 pub type HTTPResult = result::Result<Box<HTTPResponses>, Box<HTTPResponses>>;
 
@@ -130,7 +131,7 @@ impl HTTPResponses {
         let headers: String = headers
             .map(|h| {
                 h.into_iter().fold(String::new(), |mut acc, (key, val)| {
-                    let _ = write!(&mut acc, "{key}: {val}\n\n");
+                    let _ = writeln!(&mut acc, "{key}: {val}");
                     acc
                 })
             })

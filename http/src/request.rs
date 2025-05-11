@@ -5,8 +5,6 @@ use std::{
     str::{from_utf8, FromStr},
 };
 
-use crate::debg;
-
 #[derive(Debug, PartialEq, Eq)]
 pub struct HTTPRequestHeader {
     pub method: String,
@@ -14,6 +12,7 @@ pub struct HTTPRequestHeader {
     pub http_version: String,
     pub content_length: Option<usize>,
     pub content_type: Option<String>,
+    pub web_socket_key: Option<String>,
 }
 
 // Wrapper for HTTPRequestHeader and a Vec<u8> representing the body
@@ -86,12 +85,22 @@ impl FromStr for HTTPRequestHeader {
             .and_then(|s| s.get(1))
             .map(|length| length.as_str().to_owned());
 
+        //Get WebSocket Key
+        let re = Regex::new(r"Sec-WebSocket-Key: (.+)\r\n")
+            .map_err(|err| format!("Could not get regex to parse sec web socket key => {err}"))?;
+
+        let web_socket_key: Option<String> = re
+            .captures(rest)
+            .and_then(|s| s.get(1))
+            .map(|length| length.as_str().to_owned());
+
         Ok(HTTPRequestHeader {
             method: method.to_owned(),
             path: path.to_owned(),
             http_version: http_version.to_owned(),
             content_length,
             content_type,
+            web_socket_key,
         })
     }
 }
@@ -113,6 +122,7 @@ mod tests {
         http_version: &str,
         content_length: Option<usize>,
         content_type: Option<&str>,
+        web_socket_key: Option<&str>,
     ) -> HTTPRequestHeader {
         HTTPRequestHeader {
             method: method.to_owned(),
@@ -120,6 +130,7 @@ mod tests {
             http_version: http_version.to_owned(),
             content_length,
             content_type: content_type.map(|s| s.to_owned()),
+            web_socket_key: web_socket_key.map(|s| s.to_owned()),
         }
     }
     #[test]
@@ -137,7 +148,7 @@ mod tests {
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         ];
-        let expected_answer: HTTPRequestHeader = new_request("GET", "/", "1.1", None, None);
+        let expected_answer: HTTPRequestHeader = new_request("GET", "/", "1.1", None, None, None);
 
         let DeconstructedHTTPRequest(actual_answer, _) = test_bytes
             .try_into()
@@ -173,7 +184,8 @@ mod tests {
             110, 111, 110, 101, 13, 10, 83, 101, 99, 45, 70, 101, 116, 99, 104, 45, 85, 115, 101,
             114, 58, 32, 63, 49, 13, 10, 13, 10, 0, 0,
         ];
-        let expected_answer: HTTPRequestHeader = new_request("GET", "/hello", "1.1", None, None);
+        let expected_answer: HTTPRequestHeader =
+            new_request("GET", "/hello", "1.1", None, None, None);
 
         let DeconstructedHTTPRequest(actual_answer, _) = test_bytes
             .try_into()
