@@ -1,5 +1,4 @@
 mod parser;
-mod static_routes;
 use clap::Parser;
 use http::{
     handle_web_sockets, DeconstructedHTTPRequest, HTTPRequest, Router, WebSocketCommands,
@@ -15,6 +14,7 @@ use tokio::{
 
 const BUF_SIZE: usize = 1024;
 const RETRIES: u8 = 5;
+
 async fn handle_connection(
     stream: TcpStream,
     router: Arc<Router>,
@@ -92,6 +92,7 @@ async fn main() {
         UnboundedReceiver<WebSocketCommands>,
     ) = mpsc::unbounded_channel();
 
+    // Web socket thread. This socket stores uuids as keys and a channel to contact each active session as values.
     tokio::spawn(async move {
         let mut socket_session: WebSockets = WebSockets::default();
         while let Some(command) = rx.recv().await {
@@ -111,13 +112,13 @@ async fn main() {
             }
         }
     });
-    let router: Arc<Router> = Arc::new(Router::new().with(static_routes::http_routes()));
+    let router: Arc<Router> = Arc::new(Router::new());
 
     loop {
         let (socket, _) = listener
             .accept()
             .await
-            .expect("Error unwraping the listener");
+            .expect("Error unwrapping the listener");
         let routeref = Arc::clone(&router);
         let tx_cloned = tx.clone();
         tokio::spawn(async move {
