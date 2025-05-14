@@ -2,7 +2,6 @@ use super::{HTTPRequest, HTTPResponses, HTTPResult, Response};
 
 // import the Regex and Regex Error package
 use regex::{Error, Regex};
-use std::result;
 
 #[derive(Debug)]
 struct InternalRoute {
@@ -12,7 +11,7 @@ struct InternalRoute {
     callback: fn(HTTPRequest) -> HTTPResult,
 }
 
-/// In this partial eq implementation, we use function parameter pattern matchin (see https://doc.rust-lang.org/book/ch18-01-all-the-places-for-patterns.html#function-parameters) to extract only the headers, which we then use for comparison.
+/// In this partial eq implementation, we use function parameter pattern matching (see https://doc.rust-lang.org/book/ch18-01-all-the-places-for-patterns.html#function-parameters) to extract only the headers, which we then use for comparison.
 /// The eq method still takes the whole, request, but we only care about the headers and wildcard the body.
 impl PartialEq<HTTPRequest> for InternalRoute {
     fn eq(&self, HTTPRequest(other, _): &HTTPRequest) -> bool {
@@ -67,7 +66,7 @@ impl Router {
         path: &str,
         http_version: &str,
         callback: fn(HTTPRequest) -> HTTPResult,
-    ) -> result::Result<Self, Error> {
+    ) -> Result<Self, Error> {
         self.internal_route_vec.push(InternalRoute {
             method: Regex::new(method)?,
             path: Regex::new(path)?,

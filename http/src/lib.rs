@@ -1,10 +1,13 @@
+mod chat;
 mod request;
 mod response;
 mod route;
+mod sockets;
 
 pub use request::{DeconstructedHTTPRequest, HTTPRequest, HTTPRequestHeader};
 pub use response::{http_err, http_ok, HTTPResponses, HTTPResult, Response};
 pub use route::Router;
+pub use sockets::*;
 pub use HTTPResponses::*;
 
 #[macro_export]
