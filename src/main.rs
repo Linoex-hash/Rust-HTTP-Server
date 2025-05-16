@@ -97,8 +97,8 @@ async fn main() {
         let mut socket_session: WebSockets = WebSockets::default();
         while let Some(command) = rx.recv().await {
             match command {
-                WebSocketCommands::WebSocketAddConn(uuid, mutex) => {
-                    socket_session.add_session(uuid, mutex).await
+                WebSocketCommands::WebSocketAddConn(uuid, sender) => {
+                    socket_session.add_session(uuid, sender).await
                 }
                 WebSocketCommands::WebSocketRemoveConn(uuid) => {
                     socket_session.remove_session(uuid).await
