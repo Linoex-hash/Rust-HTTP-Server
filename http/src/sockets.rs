@@ -302,7 +302,7 @@ pub async fn handle_web_sockets(
 
     loop {
         select! { // we use select here because we want to listen for broadcasts
-            broad_cast_payload = rx.recv() => match broad_cast_payload {
+            broadcast_payload = rx.recv() => match broadcast_payload {
                 Some(value) => tcp_handler.write_all(&value).await.unwrap(),
                 None => break,
             },
