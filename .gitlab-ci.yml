@@ -15,12 +15,9 @@ variables:
   # TAG_COMMIT: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_NAME:$CI_COMMIT_SHORT_SHA
 
 publish:
-  image: docker:latest
   tags:
     - docker-builder
   stage: publish
-  services:
-    - docker:dind
   script:
     # - docker build -t $TAG_COMMIT -t $TAG_LATEST .
     - docker build -t $TAG_LATEST .
