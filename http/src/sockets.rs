@@ -300,6 +300,18 @@ pub async fn handle_web_sockets(
         .send(WebSocketCommands::WebSocketAddConn(uuid, tx))
         .unwrap();
 
+    // Broadcast a connected response so clients know this user is connected
+    let output = serde_json::to_string(&ChatMessage {
+        username: uuid,
+        comment: "Connected".into(),
+        message_type: "chatMessage".into(),
+    })
+    .map(String::into_bytes)
+    .map(|res| WebSocketFrameParser::send_response(&res))
+    .unwrap();
+
+    let _ = sender.send(WebSocketCommands::WebSocketBroadcastExcept(uuid, output));
+
     loop {
         select! { // we use select here because we want to listen for broadcasts
             broadcast_payload = rx.recv() => match broadcast_payload {
@@ -312,6 +324,18 @@ pub async fn handle_web_sockets(
             }
         };
     }
+
+    // Send disconnected message
+    let output = serde_json::to_string(&ChatMessage {
+        username: uuid,
+        comment: "Disconnected".into(),
+        message_type: "chatMessage".into(),
+    })
+    .map(String::into_bytes)
+    .map(|res| WebSocketFrameParser::send_response(&res))
+    .unwrap();
+
+    let _ = sender.send(WebSocketCommands::WebSocketBroadcastExcept(uuid, output));
 
     sender
         .send(WebSocketCommands::WebSocketRemoveConn(uuid))
