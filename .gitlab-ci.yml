@@ -18,6 +18,10 @@ publish:
   tags:
     - docker-builder
   stage: publish
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: always
+    - when: manual
   script:
     # - docker build -t $TAG_COMMIT -t $TAG_LATEST .
     - docker build -t $TAG_LATEST .
@@ -34,6 +38,7 @@ deploy:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: always
+    - when: manual
   script:
     - chmod og= $ID_RSA
     - apk update && apk add openssh-client
