@@ -303,8 +303,8 @@ pub async fn handle_web_sockets(
     // Broadcast a connected response so clients know this user is connected
     let output = serde_json::to_string(&ChatMessage {
         username: uuid,
-        comment: "Connected".into(),
-        message_type: "chatMessage".into(),
+        comment: "connected".into(),
+        message_type: "connectionStatus".into(),
     })
     .map(String::into_bytes)
     .map(|res| WebSocketFrameParser::send_response(&res))
@@ -328,8 +328,8 @@ pub async fn handle_web_sockets(
     // Send disconnected message
     let output = serde_json::to_string(&ChatMessage {
         username: uuid,
-        comment: "Disconnected".into(),
-        message_type: "chatMessage".into(),
+        comment: "disconnected".into(),
+        message_type: "connectionStatus".into(),
     })
     .map(String::into_bytes)
     .map(|res| WebSocketFrameParser::send_response(&res))
@@ -345,7 +345,12 @@ pub async fn handle_web_sockets(
 pub fn handle_payload(payload: Vec<u8>, uuid: Uuid, sender: UnboundedSender<WebSocketCommands>) {
     let decoded = String::from_utf8_lossy(&payload);
     let mut message: ChatMessage = serde_json::from_str::<ChatMessage>(&decoded).unwrap();
-    message.username = uuid;
+
+    if message.message_type == "pingMessage" {
+        message.message_type = "pongMessage".into();
+    } else {
+        message.username = uuid;
+    }
     let output = serde_json::to_string(&message)
         .map(String::into_bytes)
         .map(|res| WebSocketFrameParser::send_response(&res))
